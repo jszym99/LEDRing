@@ -11,6 +11,12 @@
 #include <util.h>
 #include <sim.h>
 
+#define SIM_MODE 0 // Default pendulum simulation
+#define SIMPLE_SIM_MODE 1 // Simplified pendulum simulation
+#define ART_HOR_MODE 2 // Artificial horizon
+
+#define MODE SIM_MODE
+
 // #define LEDCOUNT 72
 // #define NUM 9
 
@@ -61,47 +67,55 @@ int main()
             // }
             timer_clear();
 
-            int8_t x = adxl367_getLowResX();
-            int8_t y = adxl367_getLowResY();
-            int8_t z = adxl367_getLowResZ();
+            // int8_t x = adxl367_getLowResX();
+            // int8_t y = adxl367_getLowResY();
+            // int8_t z = adxl367_getLowResZ();
 
-            // struct AccXYZ acc = adxl367_getLowResXYZ();
+            struct AccXYZ acc = adxl367_getLowResXYZ();
 
-            // int8_t x = acc.x;
-            // int8_t y = acc.y;
-            // int8_t z = acc.z;
-
-            double g_x = x/6.4;
-            double g_y = y/6.4;
-
-            double alpha = atan2(x,y);
-
-            int16_t angle = toDegrees(-alpha) + 90 + 2.5;
-            // y < 0 ? angle += 180 : angle;
-            if(angle < 0)
-            {
-                angle = 360 + angle;
-            }
+            int8_t x = acc.x;
+            int8_t y = acc.y;
+            int8_t z = acc.z;
+            
+            // Simulate pendulum
+            #if (defined MODE || MODE <= SIMPLE_SIM_MODE)
 
             double millis = timer_read()/1000000.0;
             timer_clear();
 
-            // uint8_t led = pendulum(millis, alpha + toRadians(180));
-            // uint8_t led = pendulumSimp(millis, g_y, g_x);
-            // uint8_t led = artificialHorizon(x, y, z);
-            // display_setLed(led);
+                #if (MODE == SIM_MODE)
+                    double alpha = atan2(x,y);
+
+                    int16_t angle = toDegrees(-alpha) + 90 + 2.5;
+                    // y < 0 ? angle += 180 : angle;
+                    if(angle < 0)
+                    {
+                        angle = 360 + angle;
+                    }
+
+                    uint8_t led = pendulum(millis, alpha + toRadians(180));
+                #elif (MODE == SIMPLE_SIM_MODE)
+                    double g_x = x/6.4;
+                    double g_y = y/6.4;
+
+                    uint8_t led = pendulumSimp(millis, g_y, g_x);
+                #endif /* (MODE == SIMPLE_SIM_MODE) */
+                display_setLed(led);
+            #endif /* (defined MODE || MODE <= SIMPLE_SIM_MODE) */
 
             // Simulate artificial horizon
 
-            // Calculate line start and end
-            int16_t start = fixAngle(getRoll(x,y,z) - getPitch(x,y,z) - 90)/RESOLUTION;
-            int16_t end = fixAngle(getRoll(x,y,z) + getPitch(x,y,z) + 90)/RESOLUTION;
+            #if (defined MODE && MODE == ART_HOR_MODE)
+                // Calculate line start and end
+                int16_t start = fixAngle(getRoll(x,y,z) - getPitch(x,y,z) - 90)/RESOLUTION;
+                int16_t end = fixAngle(getRoll(x,y,z) + getPitch(x,y,z) + 90)/RESOLUTION;
 
-            display_clear();
-            
-            display_drawLine(start, end);
+                display_clear();
+                
+                display_drawLine(start, end);
 
-            display_display();
+                display_display();
+            #endif
             _delay_us(10);
         }
     }

@@ -99,8 +99,8 @@ uint8_t i2c_master_writeMulti(uint8_t slaveAddress, uint8_t registerAddress, uin
  * 
  * @param slaveAddress Address of the slave device to write to
  * @param registerAddress Address of the slave device's first register to start reading from
- * @param dataPtr Pointer to read data buffer
- * @param dataSize Size (in bytes) of the data to read (equal to number of registers)
+ * @param dataPtr Pointer to read data buffer with empty first byte
+ * @param dataSize Size (in bytes) of the data to read + 1 (equal to number of registers)
  * @return uint8_t 0 if transmission was successful
  */
 uint8_t i2c_master_readMulti(uint8_t slaveAddress, uint8_t registerAddress, uint8_t *dataPtr, uint8_t dataSize){
@@ -110,16 +110,12 @@ uint8_t i2c_master_readMulti(uint8_t slaveAddress, uint8_t registerAddress, uint
     if(USI_TWI_Start_Transceiver_With_Data(msgBuffer, 2) == TRUE)
     {
         /* Set R/W bit. */
-        msgBuffer[0] = (msgBuffer[0] | 0x01);
+        dataPtr[0] = (msgBuffer[0] | 0x01);
 
         // Send device address
-        if(USI_TWI_Start_Transceiver_With_Data(msgBuffer, 1) == TRUE)
+        if(USI_TWI_Start_Transceiver_With_Data(dataPtr, dataSize) == TRUE)
         {
-            // Read given number of registers starting with registerAddress
-            if(USI_TWI_Start_Transceiver_With_Data(dataPtr, dataSize) != TRUE)
-            {
-                return 1; // Indicate error
-            }
+
         }
         else
         {

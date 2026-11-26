@@ -86,14 +86,14 @@ int8_t adxl367_getLowResZ()
 
 struct AccXYZ adxl367_getLowResXYZ()
 {
-    uint8_t buff[3];
+    uint8_t buff[4];
     struct AccXYZ out;
 
-    i2c_master_readMulti(ADXL367_I2C_ADDR, ADXL367_REG_XDATA, buff, 3);
+    i2c_master_readMulti(ADXL367_I2C_ADDR, ADXL367_REG_XDATA, buff, 4);
 
-    out.x = buff[0];
-    out.y = buff[1];
-    out.z = buff[2];
+    out.x = buff[1];
+    out.y = buff[2];
+    out.z = buff[3];
 
     return out;
 }
