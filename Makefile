@@ -51,7 +51,7 @@ OBJ = $(patsubst %.c, build/%.o, $(SOURCES))
 TARGET = build/$(PROJECT)
 
 # Create the build directory if it doesn't exist
-MKDIR_P = mkdir
+MKDIR_P = mkdir -p
 
 # Compile and link
 all: $(TARGET).hex
@@ -63,7 +63,7 @@ $(TARGET).elf: $(OBJECTS)
 	@$(CC) $(LDFLAGS) -o $@ $^
 
 $(OBJ_DIR)/%.o: %.c
-	@if not exist "$(dir $@)" mkdir "$(dir $@)"
+	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 # Flash the microcontroller
